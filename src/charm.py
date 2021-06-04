@@ -123,6 +123,7 @@ class SshproxyCharm(SSHProxyCharm):
             proxy.run("sudo rm /usr/share/keyrings/docker-archive-keyring.gpg")
 
             self.unit.status = MaintenanceStatus("Removing docker-compose")
+            proxy.run("newgrp ubuntu && gpasswd -d $USER docker && sudo groupdel docker")
             proxy.run("sudo rm /usr/local/bin/docker-compose")
 
             self.unit.status = ActiveStatus("All the installed packages were removed")
