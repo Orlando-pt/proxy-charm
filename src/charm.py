@@ -2,6 +2,10 @@
 # Copyright 2020 David Garcia
 # See LICENSE file for licensing details.
 
+import sys
+
+sys.path.append("lib")
+
 from ops.main import main
 
 from charms.osm.sshproxy import SSHProxyCharm
@@ -104,6 +108,9 @@ class SshproxyCharm(SSHProxyCharm):
             proxy.run("sudo curl -L \"https://github.com/docker/compose/releases/latest/download" + 
                 "/docker-compose-$(uname -s)-$(uname -m)\" " + 
                 "-o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose")
+
+            # add directory where the github repository will be pulled
+            proxy.run("mkdir ~/github-code")
             
             self.unit.status = ActiveStatus("All required packages installed successfully")
         else:
@@ -123,8 +130,11 @@ class SshproxyCharm(SSHProxyCharm):
             proxy.run("sudo rm /usr/share/keyrings/docker-archive-keyring.gpg")
 
             self.unit.status = MaintenanceStatus("Removing docker-compose")
-            proxy.run("newgrp ubuntu && gpasswd -d $USER docker && sudo groupdel docker")
+            proxy.run("newgrp ubuntu && sudo gpasswd -d $USER docker && sudo groupdel docker")
             proxy.run("sudo rm /usr/local/bin/docker-compose")
+
+            # remove github code
+            proxy.run("rm -rf ~/github-code")
 
             self.unit.status = ActiveStatus("All the installed packages were removed")
         else:
