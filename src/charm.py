@@ -207,9 +207,7 @@ class SshproxyCharm(SSHProxyCharm):
             self.unit.status = MaintenanceStatus("Updating repository")
 
 
-            proxy.run("cd {}{}".format(self.github_dir, event.params["app-name"]))
-            proxy.run("git pull")
-            proxy.run("cd ~")
+            proxy.run("cd {}{} && git pull".format(self.github_dir, event.params["app-name"]))
 
             self.unit.status = ActiveStatus("Repository updated")
         else:
