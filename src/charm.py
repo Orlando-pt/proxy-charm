@@ -54,6 +54,7 @@ class SshproxyCharm(SSHProxyCharm):
         self.framework.observe(self.on.run_app_action, self.on_run_app_action)
         self.framework.observe(self.on.stop_app_action, self.on_stop_app_action)
         self.framework.observe(self.on.start_app_action, self.on_start_app_action)
+        self.framework.observe(self.on.remove_app_action, self.on_remove_app_action)
 
         # specific vars
         self.github_dir = "~/github-code/"
@@ -248,6 +249,22 @@ class SshproxyCharm(SSHProxyCharm):
         else:
             event.fail("Unit is not leader")
             return
+
+    def on_remove_app_action(self, event):
+        """ Remove application on the VM associated with the VNF service """
+        if self.unit.is_leader():
+            app_name = event.params["app-name"]
+            
+            proxy = self.get_ssh_proxy()
+            self.unit.status = MaintenanceStatus("Removing application {}".format(app_name))
+
+            proxy.run("docker-compose -f {}{}/docker-compose.yml down".format(self.github_dir, app_name))
+
+            self.unit.status = ActiveStatus("{} removed successfully".format(app_name))
+        else:
+            event.fail("Unit is not leader")
+            return
+
 
 if __name__ == "__main__":
     main(SshproxyCharm)
