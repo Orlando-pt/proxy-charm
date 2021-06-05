@@ -70,22 +70,22 @@ run-app:
   required:
     - app-name
 
-# stop-app:
-#   description: "Stop a specific application."
-#   params:
-#     app-name:
-#       description: "The name of the application."
-#       type: string
-#       default: ""
-#     required:
-#       - app-name
+stop-app:
+  description: "Stop a specific application."
+  params:
+    app-name:
+      description: "The name of the application."
+      type: string
+      default: ""
+  required:
+    - app-name
 
-# start-app:
-#   description: "Start a spefic application. "
-#   params:
-#     app-name:
-#       description: "The name of the application."
-#       type: string
-#       default: ""
-#     required:
-#       - app-name
+start-app:
+  description: "Start a spefic application. "
+  params:
+    app-name:
+      description: "The name of the application."
+      type: string
+      default: ""
+  required:
+    - app-name
