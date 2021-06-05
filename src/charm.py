@@ -13,10 +13,6 @@ from ops.model import (
     ModelError,
 )
 
-# self.unit.status = MaintenanceStatus("Generating SSH keys...")
-# self.unit.status = ActiveStatus()
-# self.unit.status = BlockedStatus("Invalid SSH credentials.")
-
 class SshproxyCharm(SSHProxyCharm):
     def __init__(self, *args):
         super().__init__(*args)
@@ -57,6 +53,7 @@ class SshproxyCharm(SSHProxyCharm):
 
         # specific vars
         self.github_dir = "~/github-code/"
+        self.github_repositories = []
 
     def on_config_changed(self, event):
         """Handle changes in configuration"""
@@ -191,10 +188,16 @@ class SshproxyCharm(SSHProxyCharm):
         """ Clone github repository to the VNF service on the VM """
         if self.unit.is_leader():
             proxy = self.get_ssh_proxy()
+            app_name = event.params["app-name"]
+
             self.unit.status = MaintenanceStatus("Cloning repository")
+
             proxy.run("git clone {} {}{}".format(event.params["repository-name"],
-                                    self.github_dir, event.params["app-name"]))
-            self.unit.status = ActiveStatus("Repository Cloned")
+                                    self.github_dir, app_name))
+
+            # TODO remove list of apps
+            self.github_repositories.append(app_name)
+            self.unit.status = ActiveStatus("Repository Cloned {}".format(self.github_repositories))
         else:
             event.fail("Unit is not leader")
             return
