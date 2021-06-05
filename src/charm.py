@@ -204,20 +204,20 @@ class SshproxyCharm(SSHProxyCharm):
     # docker-compose -f github-code/django/docker-compose.yml down
     # não remove as images associadas a esta build
     # 
-    def on_run_app_action(self, event):
-        """ Build and run application on the VM associated with the VNF service """
-        if self.unit.is_leader():
-            app_name = event.params["app-name"]
+    # def on_run_app_action(self, event):
+    #     """ Build and run application on the VM associated with the VNF service """
+    #     if self.unit.is_leader():
+    #         app_name = event.params["app-name"]
             
-            proxy = self.get_ssh_proxy()
-            self.unit.status = MaintenanceStatus("Building and running application {}".format(app_name))
+    #         proxy = self.get_ssh_proxy()
+    #         self.unit.status = MaintenanceStatus("Building and running application {}".format(app_name))
 
-            proxy.run("docker-compose -f {}{}/docker-compose.yml up -d")
+    #         proxy.run("docker-compose -f {}{}/docker-compose.yml up -d")
 
-            self.unit.status = ActiveStatus("{} running successfully".format(app_name))
-        else:
-            event.fail("Unit is not leader")
-            return
+    #         self.unit.status = ActiveStatus("{} running successfully".format(app_name))
+    #     else:
+    #         event.fail("Unit is not leader")
+    #         return
 
     # def on_stop_app_action(self, event):
     #     """ Stop application on the VM associated with the VNF service """
