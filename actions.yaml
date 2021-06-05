@@ -60,15 +60,15 @@ clone-github-repository:
     - repository-name
     - app-name
 
-# run-app:
-#   description: "Run a application. It includes the build and up phase."
-#   params:
-#     app-name:
-#       description: "The name of the application."
-#       type: string
-#       default: ""
-#     required:
-#       - app-name
+run-app:
+  description: "Run a application. It includes the build and up phase."
+  params:
+    app-name:
+      description: "The name of the application."
+      type: string
+      default: ""
+  required:
+    - app-name
 
 # stop-app:
 #   description: "Stop a specific application."

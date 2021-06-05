@@ -51,7 +51,7 @@ class SshproxyCharm(SSHProxyCharm):
         # Personalized actions
         self.framework.observe(self.on.clone_github_repository_action,
                                         self.on_clone_github_repository_action)
-        #self.framework.observe(self.on.run_app_action, self.on_run_app_action)
+        self.framework.observe(self.on.run_app_action, self.on_run_app_action)
         # self.framework.observe(self.on.stop_app_action, self.on_stop_app_action)
         # self.framework.observe(self.on.start_app_action, self.on_start_app_action)
 
@@ -204,20 +204,20 @@ class SshproxyCharm(SSHProxyCharm):
     # docker-compose -f github-code/django/docker-compose.yml down
     # não remove as images associadas a esta build
     # 
-    # def on_run_app_action(self, event):
-    #     """ Build and run application on the VM associated with the VNF service """
-    #     if self.unit.is_leader():
-    #         app_name = event.params["app-name"]
+    def on_run_app_action(self, event):
+        """ Build and run application on the VM associated with the VNF service """
+        if self.unit.is_leader():
+            app_name = event.params["app-name"]
             
-    #         proxy = self.get_ssh_proxy()
-    #         self.unit.status = MaintenanceStatus("Building and running application {}".format(app_name))
+            proxy = self.get_ssh_proxy()
+            self.unit.status = MaintenanceStatus("Building and running application {}".format(app_name))
 
-    #         proxy.run("docker-compose -f {}{}/docker-compose.yml up -d")
+            proxy.run("docker-compose -f {}{}/docker-compose.yml up -d")
 
-    #         self.unit.status = ActiveStatus("{} running successfully".format(app_name))
-    #     else:
-    #         event.fail("Unit is not leader")
-    #         return
+            self.unit.status = ActiveStatus("{} running successfully".format(app_name))
+        else:
+            event.fail("Unit is not leader")
+            return
 
     # def on_stop_app_action(self, event):
     #     """ Stop application on the VM associated with the VNF service """
