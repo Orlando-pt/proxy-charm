@@ -51,6 +51,12 @@ class SshproxyCharm(SSHProxyCharm):
         # Personalized actions
         self.framework.observe(self.on.clone_github_repository_action,
                                         self.on_clone_github_repository_action)
+        self.framework.observe(self.on.run_app_action, self.on_run_app_action)
+        self.framework.observe(self.on.stop_app_action, self.on_stop_app_action)
+        self.framework.observe(self.on.start_app_action, self.on_start_app_action)
+
+        # specific vars
+        self.github_dir = "~/github-code/"
 
     def on_config_changed(self, event):
         """Handle changes in configuration"""
@@ -121,7 +127,7 @@ class SshproxyCharm(SSHProxyCharm):
                 "-o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose")
 
             # add directory where the github repository code will be placed
-            proxy.run("mkdir ~/github-code")
+            proxy.run("mkdir {}".format(self.github_dir))
             
             self.unit.status = ActiveStatus("All required packages installed successfully")
         else:
@@ -152,7 +158,7 @@ class SshproxyCharm(SSHProxyCharm):
             proxy.run("sudo rm /usr/local/bin/docker-compose")
 
             # remove github code
-            proxy.run("rm -rf ~/github-code")
+            proxy.run("rm -rf {}".format(self.github_dir))
 
             self.unit.status = ActiveStatus("All the installed packages were removed")
         else:
@@ -186,8 +192,8 @@ class SshproxyCharm(SSHProxyCharm):
         if self.unit.is_leader():
             proxy = self.get_ssh_proxy()
             self.unit.status = MaintenanceStatus("Cloning repository")
-            proxy.run("git clone {} ~/github-code/{}".format(event.params["repository-name"],
-                                                                    event.params["app-name"]))
+            proxy.run("git clone {} {}{}".format(event.params["repository-name"],
+                                    self.github_dir, event.params["app-name"]))
             self.unit.status = ActiveStatus("Repository Cloned")
         else:
             event.fail("Unit is not leader")
@@ -198,7 +204,50 @@ class SshproxyCharm(SSHProxyCharm):
     # docker-compose -f github-code/django/docker-compose.yml down
     # não remove as images associadas a esta build
     # 
+    def on_run_app_action(self, event):
+        """ Build and run application on the VM associated with the VNF service """
+        if self.unit.is_leader():
+            app_name = event.params["app-name"]
+            
+            proxy = self.get_ssh_proxy()
+            self.unit.status = MaintenanceStatus("Building and running application {}".format(app_name))
 
+            proxy.run("docker-compose -f {}{}/docker-compose.yml up -d")
+
+            self.unit.status = ActiveStatus("{} running successfully".format(app_name))
+        else:
+            event.fail("Unit is not leader")
+            return
+
+    def on_stop_app_action(self, event):
+        """ Stop application on the VM associated with the VNF service """
+        if self.unit.is_leader():
+            app_name = event.params["app-name"]
+            
+            proxy = self.get_ssh_proxy()
+            self.unit.status = MaintenanceStatus("Stoping application {}".format(app_name))
+
+            proxy.run("docker-compose -f {}{}/docker-compose.yml stop")
+
+            self.unit.status = ActiveStatus("{} stopped successfully".format(app_name))
+        else:
+            event.fail("Unit is not leader")
+            return
+
+    def on_start_app_action(self, event):
+        """ Start application on the VM associated with the VNF service """
+        if self.unit.is_leader():
+            app_name = event.params["app-name"]
+            
+            proxy = self.get_ssh_proxy()
+            self.unit.status = MaintenanceStatus("Starting application {}".format(app_name))
+
+            proxy.run("docker-compose -f {}{}/docker-compose.yml start")
+
+            self.unit.status = ActiveStatus("{} started successfully".format(app_name))
+        else:
+            event.fail("Unit is not leader")
+            return
 
 if __name__ == "__main__":
     main(SshproxyCharm)

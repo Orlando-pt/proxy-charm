@@ -46,16 +46,46 @@ get-ssh-public-key:
 
 # Personalized actions
 clone-github-repository:
-  description: "Clone a specific github repository to the VNF"
+  description: "Clone a specific github repository to the VNF."
   params:
     repository-name:
-      description: "The name of the repository"
+      description: "The name of the repository."
       type: string
       default: ""
     app-name:
-      description: "Name of the application"
+      description: "The name of the application."
       type: string
       default: ""
   required:
     - repository-name
     - app-name
+
+run-app:
+  description: "Run a application. It includes the build and up phase."
+  params:
+    app-name:
+      description: "The name of the application."
+      type: string
+      default: ""
+    required:
+      - app-name
+
+stop-app:
+  description: "Stop a specific application."
+  params:
+    app-name:
+      description: "The name of the application."
+      type: string
+      default: ""
+    required:
+      - app-name
+
+start-app:
+  description: "Start a spefic application. "
+  params:
+    app-name:
+      description: "The name of the application."
+      type: string
+      default: ""
+    required:
+      - app-name
