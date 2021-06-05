@@ -52,5 +52,10 @@ clone-github-repository:
       description: "The name of the repository"
       type: string
       default: ""
+    app-name:
+      description: "Name of the application"
+      type: string
+      default: ""
   required:
     - repository-name
+    - app-name

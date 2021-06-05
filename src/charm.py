@@ -134,6 +134,9 @@ class SshproxyCharm(SSHProxyCharm):
             self.unit.status = MaintenanceStatus("Removing docker")
             proxy = self.get_ssh_proxy()
 
+            # TODO maybe stop all services running on docker
+            # otherwise maybe it gives error when uninstalling
+
             # removing docker
             proxy.run("sudo apt-get -y purge docker-ce docker-ce-cli containerd.io")
             proxy.run("sudo apt-get -y autoremove")
@@ -182,10 +185,19 @@ class SshproxyCharm(SSHProxyCharm):
         """ Clone github repository to the VNF service on the VM """
         if self.unit.is_leader():
             proxy = self.get_ssh_proxy()
-            proxy.run("git clone {} ~/github-code".format(event.params["repository-name"]))
+            self.unit.status = MaintenanceStatus("Cloning repository")
+            proxy.run("git clone {} ~/github-code/{}".format(event.params["repository-name"],
+                                                                    event.params["app-name"]))
+            self.unit.status = ActiveStatus("Repository Cloned")
         else:
             event.fail("Unit is not leader")
             return
+
+    # docker-compose -f ~/github-code/? up start stop down
+    # docker-compose -f github-code/django/docker-compose.yml up -d
+    # docker-compose -f github-code/django/docker-compose.yml down
+    # não remove as images associadas a esta build
+    # 
 
 
 if __name__ == "__main__":
