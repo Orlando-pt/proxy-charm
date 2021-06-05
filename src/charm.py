@@ -182,7 +182,7 @@ class SshproxyCharm(SSHProxyCharm):
         """ Clone github repository to the VNF service on the VM """
         if self.unit.is_leader():
             proxy = self.get_ssh_proxy()
-            proxy.run(f"git clone {event.params["repository-name"]} ~/github-code")
+            proxy.run("git clone {} ~/github-code".format(event.params["repository-name"]))
         else:
             event.fail("Unit is not leader")
             return
