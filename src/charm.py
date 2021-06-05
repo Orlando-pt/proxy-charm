@@ -52,8 +52,8 @@ class SshproxyCharm(SSHProxyCharm):
         self.framework.observe(self.on.clone_github_repository_action,
                                         self.on_clone_github_repository_action)
         self.framework.observe(self.on.run_app_action, self.on_run_app_action)
-        self.framework.observe(self.on.stop_app_action, self.on_stop_app_action)
-        self.framework.observe(self.on.start_app_action, self.on_start_app_action)
+        # self.framework.observe(self.on.stop_app_action, self.on_stop_app_action)
+        # self.framework.observe(self.on.start_app_action, self.on_start_app_action)
 
         # specific vars
         self.github_dir = "~/github-code/"
@@ -219,35 +219,35 @@ class SshproxyCharm(SSHProxyCharm):
             event.fail("Unit is not leader")
             return
 
-    def on_stop_app_action(self, event):
-        """ Stop application on the VM associated with the VNF service """
-        if self.unit.is_leader():
-            app_name = event.params["app-name"]
+    # def on_stop_app_action(self, event):
+    #     """ Stop application on the VM associated with the VNF service """
+    #     if self.unit.is_leader():
+    #         app_name = event.params["app-name"]
             
-            proxy = self.get_ssh_proxy()
-            self.unit.status = MaintenanceStatus("Stoping application {}".format(app_name))
+    #         proxy = self.get_ssh_proxy()
+    #         self.unit.status = MaintenanceStatus("Stoping application {}".format(app_name))
 
-            proxy.run("docker-compose -f {}{}/docker-compose.yml stop")
+    #         proxy.run("docker-compose -f {}{}/docker-compose.yml stop")
 
-            self.unit.status = ActiveStatus("{} stopped successfully".format(app_name))
-        else:
-            event.fail("Unit is not leader")
-            return
+    #         self.unit.status = ActiveStatus("{} stopped successfully".format(app_name))
+    #     else:
+    #         event.fail("Unit is not leader")
+    #         return
 
-    def on_start_app_action(self, event):
-        """ Start application on the VM associated with the VNF service """
-        if self.unit.is_leader():
-            app_name = event.params["app-name"]
+    # def on_start_app_action(self, event):
+    #     """ Start application on the VM associated with the VNF service """
+    #     if self.unit.is_leader():
+    #         app_name = event.params["app-name"]
             
-            proxy = self.get_ssh_proxy()
-            self.unit.status = MaintenanceStatus("Starting application {}".format(app_name))
+    #         proxy = self.get_ssh_proxy()
+    #         self.unit.status = MaintenanceStatus("Starting application {}".format(app_name))
 
-            proxy.run("docker-compose -f {}{}/docker-compose.yml start")
+    #         proxy.run("docker-compose -f {}{}/docker-compose.yml start")
 
-            self.unit.status = ActiveStatus("{} started successfully".format(app_name))
-        else:
-            event.fail("Unit is not leader")
-            return
+    #         self.unit.status = ActiveStatus("{} started successfully".format(app_name))
+    #     else:
+    #         event.fail("Unit is not leader")
+    #         return
 
 if __name__ == "__main__":
     main(SshproxyCharm)
