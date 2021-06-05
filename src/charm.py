@@ -2,9 +2,10 @@
 # Copyright 2020 David Garcia
 # See LICENSE file for licensing details.
 
-import sys
-
-sys.path.append("lib")
+# we can find this lines on the SSHProxyCharm
+# so this is inherited
+#import sys
+#sys.path.append("lib")
 
 from ops.main import main
 
@@ -100,16 +101,16 @@ class SshproxyCharm(SSHProxyCharm):
                         " | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null")
             proxy.run("sudo apt-get update")
             proxy.run("sudo apt-get -y install docker-ce docker-ce-cli containerd.io")
-            proxy.run("sudo systemctl restart docker")
+            #proxy.run("sudo systemctl restart docker")
 
             # install docker-compose
             self.unit.status = MaintenanceStatus("Installing docker-compose")
-            try:
-                proxy.run("sudo groupadd docker && sudo usermod -aG docker $USER" + 
-                                    " && newgrp docker")
-            except Exception as e:
-                # it means that the group already exists
-                proxy.run("newgrp docker")
+            
+            #proxy.run("sudo groupadd docker")
+            proxy.run("sudo usermod -aG docker $USER")
+            proxy.run("newgrp docker")
+            proxy.run("sudo chown root:docker /var/run/docker.sock")
+            proxy.run("sudo chown -R root:docker /var/run/docker")
 
             proxy.run("sudo curl -L \"https://github.com/docker/compose/releases/latest/download" + 
                 "/docker-compose-$(uname -s)-$(uname -m)\" " + 
@@ -131,11 +132,16 @@ class SshproxyCharm(SSHProxyCharm):
 
             # removing docker
             proxy.run("sudo apt-get -y purge docker-ce docker-ce-cli containerd.io")
+            proxy.run("sudo apt-get -y autoremove")
             proxy.run("sudo rm -rf /var/lib/docker")
             proxy.run("sudo rm -rf /var/lib/containerd")
+            proxy.run("sudo rm /var/run/docker.sock")
+            proxy.run("sudo rm -rf /var/run/docker/")
 
             self.unit.status = MaintenanceStatus("Removing docker-compose")
             proxy.run("newgrp ubuntu")
+            proxy.run("sudo deluser $USER docker")
+            proxy.run("sudo groupdel docker")
             proxy.run("sudo rm /usr/local/bin/docker-compose")
 
             # remove github code
