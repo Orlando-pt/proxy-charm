@@ -42,3 +42,15 @@ verify-ssh-credentials:
   description: "Verify that this unit can authenticate with server specified by ssh-hostname and ssh-username."
 get-ssh-public-key:
   description: "Get the public SSH key for this unit."
+
+
+# Personalized actions
+clone-github-repository:
+  description: "Clone a specific github repository to the VNF"
+  params:
+    repository-name:
+      description: "The name of the repository"
+      type: string
+      default: ""
+  required:
+    - repository-name

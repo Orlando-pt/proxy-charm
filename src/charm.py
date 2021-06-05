@@ -48,6 +48,10 @@ class SshproxyCharm(SSHProxyCharm):
         self.framework.observe(self.on.reboot_action, self.on_reboot_action)
         self.framework.observe(self.on.upgrade_action, self.on_upgrade_action)
 
+        # Personalized actions
+        self.framework.observe(self.on.clone_github_repository_action,
+                                        self.on_clone_github_repository_action)
+
     def on_config_changed(self, event):
         """Handle changes in configuration"""
         super().on_config_changed(event)
@@ -116,7 +120,7 @@ class SshproxyCharm(SSHProxyCharm):
                 "/docker-compose-$(uname -s)-$(uname -m)\" " + 
                 "-o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose")
 
-            # add directory where the github repository will be pulled
+            # add directory where the github repository code will be placed
             proxy.run("mkdir ~/github-code")
             
             self.unit.status = ActiveStatus("All required packages installed successfully")
@@ -170,6 +174,18 @@ class SshproxyCharm(SSHProxyCharm):
     def on_upgrade_action(self, event):
         """Upgrade the VNF service on the VM."""
         pass
+
+    ########################
+    # Personalized methods #
+    ########################
+    def on_clone_github_repository_action(self, event):
+        """ Clone github repository to the VNF service on the VM """
+        if self.unit.is_leader():
+            proxy = self.get_ssh_proxy()
+            proxy.run(f"git clone {event.params["repository-name"]} ~/github-code")
+        else:
+            event.fail("Unit is not leader")
+            return
 
 
 if __name__ == "__main__":
