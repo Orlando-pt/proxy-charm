@@ -94,17 +94,23 @@ class SshproxyCharm(SSHProxyCharm):
                                         " gnupg" +
                                         " lsb-release")
             proxy.run("curl -fsSL https://download.docker.com/linux/ubuntu/gpg | " +
-                        "sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg")
+                        "sudo gpg --yes --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg")
             proxy.run("echo \"deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] " +
                         "https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\"" + 
                         " | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null")
             proxy.run("sudo apt-get update")
             proxy.run("sudo apt-get -y install docker-ce docker-ce-cli containerd.io")
+            proxy.run("sudo systemctl restart docker")
 
             # install docker-compose
             self.unit.status = MaintenanceStatus("Installing docker-compose")
-            proxy.run("sudo groupadd docker && sudo usermod -aG docker $USER" + 
+            try:
+                proxy.run("sudo groupadd docker && sudo usermod -aG docker $USER" + 
                                     " && newgrp docker")
+            except Exception as e:
+                # it means that the group already exists
+                proxy.run("newgrp docker")
+
             proxy.run("sudo curl -L \"https://github.com/docker/compose/releases/latest/download" + 
                 "/docker-compose-$(uname -s)-$(uname -m)\" " + 
                 "-o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose")
@@ -127,10 +133,9 @@ class SshproxyCharm(SSHProxyCharm):
             proxy.run("sudo apt-get -y purge docker-ce docker-ce-cli containerd.io")
             proxy.run("sudo rm -rf /var/lib/docker")
             proxy.run("sudo rm -rf /var/lib/containerd")
-            proxy.run("sudo rm /usr/share/keyrings/docker-archive-keyring.gpg")
 
             self.unit.status = MaintenanceStatus("Removing docker-compose")
-            proxy.run("newgrp ubuntu && sudo gpasswd -d $USER docker && sudo groupdel docker")
+            proxy.run("newgrp ubuntu")
             proxy.run("sudo rm /usr/local/bin/docker-compose")
 
             # remove github code
