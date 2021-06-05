@@ -2,11 +2,6 @@
 # Copyright 2020 David Garcia
 # See LICENSE file for licensing details.
 
-# we can find this lines on the SSHProxyCharm
-# so this is inherited
-#import sys
-#sys.path.append("lib")
-
 from ops.main import main
 
 from charms.osm.sshproxy import SSHProxyCharm
@@ -51,6 +46,10 @@ class SshproxyCharm(SSHProxyCharm):
         # Personalized actions
         self.framework.observe(self.on.clone_github_repository_action,
                                         self.on_clone_github_repository_action)
+        self.framework.observe(
+            self.on.update_repository_action,
+            self.on_update_repository_action
+        )
         self.framework.observe(self.on.run_app_action, self.on_run_app_action)
         self.framework.observe(self.on.stop_app_action, self.on_stop_app_action)
         self.framework.observe(self.on.start_app_action, self.on_start_app_action)
@@ -200,11 +199,23 @@ class SshproxyCharm(SSHProxyCharm):
             event.fail("Unit is not leader")
             return
 
-    # docker-compose -f ~/github-code/? up start stop down
-    # docker-compose -f github-code/django/docker-compose.yml up -d
-    # docker-compose -f github-code/django/docker-compose.yml down
-    # não remove as images associadas a esta build
-    # 
+    def on_update_repository_action(self, event):
+        """ Update repository on the VM associated with the VNF service """
+        if self.unit.is_leader():
+            proxy = self.get_ssh_proxy()
+
+            self.unit.status = MaintenanceStatus("Updating repository")
+
+
+            proxy.run("cd {}{}".format(self.github_dir, event.params["app-name"]))
+            proxy.run("git pull")
+            proxy.run("cd ~")
+
+            self.unit.status = ActiveStatus("Repository updated")
+        else:
+            event.fail("Unit is not leader")
+            return        
+
     def on_run_app_action(self, event):
         """ Build and run application on the VM associated with the VNF service """
         if self.unit.is_leader():
