@@ -51,7 +51,7 @@ class SshproxyCharm(SSHProxyCharm):
         # Personalized actions
         self.framework.observe(self.on.clone_github_repository_action,
                                         self.on_clone_github_repository_action)
-        self.framework.observe(self.on.run_app_action, self.on_run_app_action)
+        #self.framework.observe(self.on.run_app_action, self.on_run_app_action)
         # self.framework.observe(self.on.stop_app_action, self.on_stop_app_action)
         # self.framework.observe(self.on.start_app_action, self.on_start_app_action)
 
