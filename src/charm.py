@@ -46,6 +46,11 @@ class SshproxyCharm(SSHProxyCharm):
             self.on.update_repository_action,
             self.on_update_repository_action
         )
+        self.framework.observe(
+            self.on.delete_repository_action,
+            self.on_delete_repository_action
+        )
+
         self.framework.observe(self.on.run_app_action, self.on_run_app_action)
         self.framework.observe(self.on.stop_app_action, self.on_stop_app_action)
         self.framework.observe(self.on.start_app_action, self.on_start_app_action)
@@ -108,7 +113,6 @@ class SshproxyCharm(SSHProxyCharm):
                         " | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null")
             proxy.run("sudo apt-get update")
             proxy.run("sudo apt-get -y install docker-ce docker-ce-cli containerd.io")
-            #proxy.run("sudo systemctl restart docker")
 
             # install docker-compose
             self.unit.status = MaintenanceStatus("Installing docker-compose")
@@ -192,7 +196,7 @@ class SshproxyCharm(SSHProxyCharm):
 
             self.unit.status = MaintenanceStatus("Cloning repository")
 
-            proxy.run("git clone {} {}{}".format(event.params["repository-name"],
+            proxy.run("git clone {} {}{}".format(event.params["repository-url"],
                                     self.github_dir, app_name))
 
             # TODO remove list of apps
@@ -216,6 +220,22 @@ class SshproxyCharm(SSHProxyCharm):
         else:
             event.fail("Unit is not leader")
             return        
+    
+    def on_delete_repository_action(self, event):
+        """ Delete repository on the VM associated with the VNF service """
+        if self.unit.is_leader():
+            proxy = self.get_ssh_proxy()
+            app_name = event.params["app-name"]
+
+            self.unit.status = MaintenanceStatus("Deleting repository")
+
+            proxy.run("rm -rf {}{}/".format(self.github_dir, app_name))
+
+            #self.github_repositories.remove(app_name)
+            self.unit.status = ActiveStatus("Repository deleted")
+        else:
+            event.fail("Unit is not leader")
+            return 
 
     def on_run_app_action(self, event):
         """ Build and run application on the VM associated with the VNF service """

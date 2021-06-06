@@ -48,8 +48,8 @@ get-ssh-public-key:
 clone-github-repository:
   description: "Clone a specific github repository to the VNF."
   params:
-    repository-name:
-      description: "The name of the repository."
+    repository-url:
+      description: "The url of the repository."
       type: string
       default: ""
     app-name:
@@ -57,11 +57,21 @@ clone-github-repository:
       type: string
       default: ""
   required:
-    - repository-name
+    - repository-url
     - app-name
 
 update-repository:
   description: "Update repository of a specific app."
+  params:
+    app-name:
+      description: "The name of the application."
+      type: string
+      default: ""
+  required:
+    - app-name
+
+delete-repository:
+  description: "Delete repository of a specific app."
   params:
     app-name:
       description: "The name of the application."
