@@ -144,13 +144,19 @@ class SshproxyCharm(SSHProxyCharm):
             proxy = self.get_ssh_proxy()
 
             # stop all running containers
-            proxy.run("docker stop $(docker ps -q)")
+            stdout, stderr = proxy.run("docker ps -q")
+            if stdout:
+                proxy.run("docker stop $(docker ps -q)")
 
             # remove containers
-            proxy.run("docker rm $(docker ps -a -q)")
+            stdout, stderr = proxy.run("docker ps -a -q")
+            if stdout:
+                proxy.run("docker rm $(docker ps -a -q)")
 
             # remove all docker images
-            proxy.run("docker image rm $(docker images -q)")
+            stdout, stderr = proxy.run("docker images -q")
+            if stdout:
+                proxy.run("docker image rm $(docker images -q)")
             
             # removing docker installation
             proxy.run("sudo apt-get -y purge docker-ce docker-ce-cli containerd.io")
