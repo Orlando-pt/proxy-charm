@@ -8,6 +8,11 @@ The purpose of this charm is to operate a VNF via SSH. For this, the charm shoul
 
 There are two ways of specifying the credentials: password, keys. (See next section)
 
+The charm is also able to clone git repositories and do deploys using docker and docker-compose.
+The various actions related to this functionaties will be shown below.
+
+To see all the steps needed to make the deployment of a application using this charm, go to the bottom of this page.
+
 
 ## Usage
 
@@ -44,7 +49,7 @@ juju bootstrap microk8s
 juju add-model test
 ```
 
-
+### Prepare the environment (when using xenial series):
 ```bash
 mkdir -p charms/samplecharm/
 cd charms/samplecharm/
@@ -66,11 +71,11 @@ ln -s ../mod/charms.osm/charms lib/charms
 
 ```bash
 charmcraft build
-juju deploy ./sshproxy.charm
+juju deploy ./sshproxy.charm --config <file> --series <xenial|focal|...>
 ```
 
 ### Configuring the charm:
-
+#### No need to make this step if a config file was used previously
 First of all, set the username and hostname of the VNF:
 ```bash
 juju config sshproxy ssh-hostname=<hostname> \
@@ -122,6 +127,52 @@ unit-sshproxy-0:
     started: 2020-11-18 15:39:29 +0000 UTC
 ```
 
+## Git actions
+
+1. clone-github-repository
+
+    - this actions clones a repository to the VM associated with the VNF service
+
+    - usage : juju run-action sshproxy/<?> clone-github-repository repository-url=\<url> app-name=\<appname (we will use appexample further on)>
+
+2. update-repository
+
+    - this actions updates the repository on the VM associated with the VNF service
+
+    - usage : juju run-action sshproxy/<?> update-repository app-name=appexample
+
+3. delete-repository
+
+    - this actions deletes the repository on the VM associated with the VNF service
+
+    - usage : juju run-action sshproxy/<?> delete-repository app-name=appexample
+
+## Docker and Docker-compose actions
+
+1. run-app
+
+    - this actions builds and runs a application on the VM associated with the VNF service
+
+    - juju run-action sshproxy/<?> run-app app-name=appexample
+
+2. stop-app
+
+    - this actions stops a application on the VM associated with the VNF service
+    
+    - juju run-action sshproxy/<?> stop-app app-name=appexample
+
+3. start-app
+
+    - this actions starts again a application on the VM associated with the VNF service
+    
+    - juju run-action sshproxy/<?> run-app start-name=appexample
+
+4. remove-app
+
+    - this actions removes entirely a application on the VM associated with the VNF service (the git repository continues to be available)
+    
+    - juju run-action sshproxy/<?> remove-app app-name=appexample
+
 
 ## Developing
 
@@ -137,3 +188,41 @@ The Python operator framework includes a very nice harness for testing
 operator behaviour without full deployment. Just `run_tests`:
 
     ./run_tests
+
+## Deploy a app (full guide)
+
+1. Implement the charm
+
+2. Build the charm
+
+    - ```$ charmcraft build ```
+
+3. Deploy charm
+
+    - local.yaml is the file where we can find the characteristics of the ssh connection
+
+    - it is not mandatory to use xenial series, on the momment that this explanation is being made, xenial series is a constraint associated with osm charms
+
+    - ```$ juju deploy ./sshproxy.charm --config local.yaml --series xenial ```
+
+4. Install the necessary dependencies on the VM related to the VNF service
+
+    - supposing the unit has the name sshproxy/0
+
+    - ```$ juju run-action sshproxy/0 start ```
+
+5. Clone a git repository to the VM related to the VNF service
+
+    - ```$ juju run-action sshproxy/0 clone-github-repository repository-url=https://github.com/5g-mobility/django-juju-demo.git app-name=django```
+
+6. Run the django app
+
+    - ```$ juju run-action sshproxy/0 run-app app-name=django```
+
+7. Make all the necessary changes using the actions explained before
+
+8. Stop the services of the VNF
+
+    - With this step the vm erases all the docker dependencies and also the git repositories that may exist
+
+    - ```$ juju run-action sshproxy/0 stop```

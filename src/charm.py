@@ -58,7 +58,6 @@ class SshproxyCharm(SSHProxyCharm):
 
         # specific vars
         self.github_dir = "~/github-code/"
-        self.github_repositories = []
 
     def on_config_changed(self, event):
         """Handle changes in configuration"""
@@ -141,18 +140,16 @@ class SshproxyCharm(SSHProxyCharm):
             self.unit.status = MaintenanceStatus("Removing docker")
             proxy = self.get_ssh_proxy()
 
-            # TODO maybe stop all services running on docker
-            # otherwise maybe it gives error when uninstalling
+            # stop all running containers
+            proxy.run("docker stop $(docker ps -q)")
 
-            # stop and remove all apps on docker
-            for app in self.github_repositories:
-                proxy.run("docker-compose -f {}{}/docker-compose.yml down".format(
-                    self.github_dir, app
-                ))
+            # remove containers
+            proxy.run("docker rm $(docker ps -a -q)")
+
+            # remove all docker images
+            proxy.run("docker image rm $(docker images -q)")
             
-            self.github_repositories.clear()
-
-            # removing docker
+            # removing docker installation
             proxy.run("sudo apt-get -y purge docker-ce docker-ce-cli containerd.io")
             proxy.run("sudo apt-get -y autoremove")
             proxy.run("sudo rm -rf /var/lib/docker")
@@ -207,9 +204,7 @@ class SshproxyCharm(SSHProxyCharm):
             proxy.run("git clone {} {}{}".format(event.params["repository-url"],
                                     self.github_dir, app_name))
 
-            # TODO remove list of apps
-            self.github_repositories.append(app_name)
-            self.unit.status = ActiveStatus("Repository Cloned {}".format(self.github_repositories))
+            self.unit.status = ActiveStatus("Repository Cloned")
         else:
             event.fail("Unit is not leader")
             return
@@ -239,7 +234,6 @@ class SshproxyCharm(SSHProxyCharm):
 
             proxy.run("rm -rf {}{}/".format(self.github_dir, app_name))
 
-            self.github_repositories.remove(app_name)
             self.unit.status = ActiveStatus("Repository deleted")
         else:
             event.fail("Unit is not leader")
@@ -299,6 +293,9 @@ class SshproxyCharm(SSHProxyCharm):
             self.unit.status = MaintenanceStatus("Removing application {}".format(app_name))
 
             proxy.run("docker-compose -f {}{}/docker-compose.yml down".format(self.github_dir, app_name))
+
+            # remove docker images related to the app
+            proxy.run("docker image rm $(docker images -f=reference=\"{}*:*\" -q)".format(app_name))
 
             self.unit.status = ActiveStatus("{} removed successfully".format(app_name))
         else:
