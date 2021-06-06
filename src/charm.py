@@ -144,6 +144,14 @@ class SshproxyCharm(SSHProxyCharm):
             # TODO maybe stop all services running on docker
             # otherwise maybe it gives error when uninstalling
 
+            # stop and remove all apps on docker
+            for app in self.github_repositories:
+                proxy.run("docker-compose -f {}{}/docker-compose.yml down".format(
+                    self.github_dir, app
+                ))
+            
+            self.github_repositories.clear()
+
             # removing docker
             proxy.run("sudo apt-get -y purge docker-ce docker-ce-cli containerd.io")
             proxy.run("sudo apt-get -y autoremove")
@@ -231,7 +239,7 @@ class SshproxyCharm(SSHProxyCharm):
 
             proxy.run("rm -rf {}{}/".format(self.github_dir, app_name))
 
-            #self.github_repositories.remove(app_name)
+            self.github_repositories.remove(app_name)
             self.unit.status = ActiveStatus("Repository deleted")
         else:
             event.fail("Unit is not leader")
