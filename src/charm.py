@@ -120,10 +120,10 @@ class SshproxyCharm(SSHProxyCharm):
             self.unit.status = MaintenanceStatus("Installing docker-compose")
             
             #proxy.run("sudo groupadd docker")
-            proxy.run("sudo usermod -aG docker $USER")
-            proxy.run("newgrp docker")
-            proxy.run("sudo chown root:docker /var/run/docker.sock")
-            proxy.run("sudo chown -R root:docker /var/run/docker")
+            #proxy.run("sudo usermod -aG docker $USER")
+            #proxy.run("newgrp docker")
+            proxy.run("sudo chown root:ubuntu /var/run/docker.sock")
+            proxy.run("sudo chown -R root:ubuntu /var/run/docker")
 
             proxy.run("sudo curl -L \"https://github.com/docker/compose/releases/latest/download" + 
                 "/docker-compose-$(uname -s)-$(uname -m)\" " + 
@@ -167,9 +167,9 @@ class SshproxyCharm(SSHProxyCharm):
             proxy.run("sudo rm -rf /var/run/docker/")
 
             self.unit.status = MaintenanceStatus("Removing docker-compose")
-            proxy.run("newgrp ubuntu")
-            proxy.run("sudo deluser $USER docker")
-            proxy.run("sudo groupdel docker")
+            #proxy.run("newgrp ubuntu")
+            #proxy.run("sudo deluser $USER docker")
+            #proxy.run("sudo groupdel docker")
             proxy.run("sudo rm /usr/local/bin/docker-compose")
 
             # remove github code
